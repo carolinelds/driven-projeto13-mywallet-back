@@ -7,7 +7,6 @@ export async function signUp(req, res) {
     const user = req.body;
 
     // FIXME: passar para middleware
-    // FIXME: verificar se email já existe no banco de dados
     const userSchema = joi.object({
         name: joi.string().required(),
         email: joi.string().required(),
@@ -21,6 +20,13 @@ export async function signUp(req, res) {
     };
 
     try {
+        const emailUsed = await db.collection("users").findOne({ email: user.email });
+        if (emailUsed) {
+            console.log("Esse email já foi cadastrado.");
+            res.sendStatus(409);
+            return;
+        };
+
         const hashPassword = bcrypt.hashSync(user.password, 10);
         await db.collection("users").insertOne({ ...user, password: hashPassword });
 
