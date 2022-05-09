@@ -1,8 +1,9 @@
 import db from "./../db.js";
 import bcrypt from 'bcrypt';
 import joi from 'joi';
+import { v4 as uuid } from 'uuid';
 
-export async function registerUser(req, res) {
+export async function signUp(req, res) {
     const user = req.body;
 
     // FIXME: passar para middleware
@@ -21,9 +22,43 @@ export async function registerUser(req, res) {
     try {
         const hashPassword = bcrypt.hashSync(user.password, 10);
         await db.collection("users").insertOne({ ...user, password: hashPassword });
-        res.sendStatus(201); // created
+        res.sendStatus(201); 
     } catch (e) {
-        res.sendStatus(500); // internal server error
+        res.sendStatus(500); 
         console.log("Erro ao registrar", e);
+    };
+}
+
+export async function signIn(req,res){
+    const login = req.body;
+
+    const loginSchema = joi.object({
+        email: joi.string().required(),
+        password: joi.string().required()
+    });
+    const validation = loginSchema.validate(login, { abortEarly: true});
+    if (validation.error) {
+        console.log(validation.error.details);
+        res.sendStatus(422);
+        return;
+    };
+
+    try {
+        const user = await db.collection("users").findOne({ email: login.email });
+
+        if (user && bcrypt.compareSync(login.password, user.password)){
+            const token = uuid();
+            await db.collection("sessions").insertOne({
+                token,
+                userId: user._id
+            });
+
+            res.status(200).send(token);
+        } else {
+            res.sendStatus(404);
+        }
+    } catch(e) {
+        res.sendStatus(500); 
+        console.log("Erro ao faze login", e);
     }
 }
