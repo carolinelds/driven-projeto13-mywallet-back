@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 
 export async function getMovements(req, res) {
 
-    // FIXME: passar para middleware
     const { authorization } = req.headers;
     const token = authorization?.replace("Bearer", "").trim();
     if (!token) return res.sendStatus(401);
@@ -27,7 +26,6 @@ export async function getMovements(req, res) {
 
 export async function addMovement(req, res) {
 
-    // FIXME: passar para middleware
     const { authorization } = req.headers;
     const token = authorization?.replace("Bearer", "").trim();
     if (!token) return res.sendStatus(401);
@@ -58,7 +56,6 @@ export async function addMovement(req, res) {
 
         const userId = session.userId;
         const newMovement = {...movement, date: diaMes };
-        console.log(newMovement);
 
         await db.collection("movements").updateOne(
             { userId },
