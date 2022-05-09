@@ -33,21 +33,21 @@ export async function signUp(req, res) {
         }
         await db.collection("movements").insertOne(userBalance);
 
-        res.sendStatus(201); 
+        res.sendStatus(201);
     } catch (e) {
-        res.sendStatus(500); 
+        res.sendStatus(500);
         console.log("Erro ao registrar", e);
     };
 }
 
-export async function signIn(req,res){
+export async function signIn(req, res) {
     const login = req.body;
 
     const loginSchema = joi.object({
         email: joi.string().required(),
         password: joi.string().required()
     });
-    const validation = loginSchema.validate(login, { abortEarly: true});
+    const validation = loginSchema.validate(login, { abortEarly: true });
     if (validation.error) {
         console.log(validation.error.details);
         res.sendStatus(422);
@@ -57,7 +57,7 @@ export async function signIn(req,res){
     try {
         const user = await db.collection("users").findOne({ email: login.email });
 
-        if (user && bcrypt.compareSync(login.password, user.password)){
+        if (user && bcrypt.compareSync(login.password, user.password)) {
             const token = uuid();
             await db.collection("sessions").insertOne({
                 token,
@@ -68,8 +68,8 @@ export async function signIn(req,res){
         } else {
             res.sendStatus(404);
         }
-    } catch(e) {
-        res.sendStatus(500); 
+    } catch (e) {
+        res.sendStatus(500);
         console.log("Erro ao fazer login", e);
     }
 }
