@@ -1,5 +1,6 @@
 import db from "./../db.js";
 import joi from "joi";
+import dayjs from 'dayjs';
 
 export async function getMovements(req, res) {
 
@@ -31,6 +32,9 @@ export async function addMovement(req, res) {
     const token = authorization?.replace("Bearer", "").trim();
     if (!token) return res.sendStatus(401);
 
+    let diaMes = dayjs().toDate();
+    diaMes = dayjs(diaMes).format("DD/MM");
+
     try {
         const session = await db.collection("sessions").findOne({ token });
         if (!session) return res.sendStatus(401);
@@ -48,20 +52,22 @@ export async function addMovement(req, res) {
             res.sendStatus(422);
             return;
         };
-        
+
         let value = movement.value;
         if (movement.type === 'out') value = (-1) * value;
-        
+
         const userId = session.userId;
+        const newMovement = {...movement, date: diaMes };
+        console.log(newMovement);
 
         await db.collection("movements").updateOne(
             { userId },
-            { 
-                $push: { movements: movement },
-                $inc: { balance: value}
+            {
+                $push: { movements: newMovement },
+                $inc: { balance: value }
             }
         );
-        
+
         res.sendStatus(200);
 
     } catch (e) {

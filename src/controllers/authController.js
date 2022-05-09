@@ -70,7 +70,12 @@ export async function signIn(req, res) {
                 userId: user._id
             });
 
-            res.status(200).send(token);
+            const response = {
+                token,
+                name: user.name
+            };
+            
+            res.status(200).send(response);
         } else {
             res.sendStatus(404);
         }
